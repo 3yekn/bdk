@@ -161,6 +161,11 @@ name = "mnemonic_to_descriptors"
 path = "examples/mnemonic_to_descriptors.rs"
 required-features = ["all-keys"]
 
+[[example]]
+name = "mnemonic_to_signing_wallet"
+path = "examples/mnemonic_to_signing_wallet.rs"
+required-features = ["all-keys"]
+
 [workspace]
 members = ["macros"]
 [package.metadata.docs.rs]
