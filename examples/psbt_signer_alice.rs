@@ -17,6 +17,7 @@ use electrum_client::Client;
 use miniscript::descriptor::DescriptorSecretKey;
 use std::error::Error;
 use std::str::FromStr;
+// use bdk::descriptor::IntoWalletDescriptor;
 
 /// This example shows how to sign and broadcast the transaction for a PSBT (Partially Signed
 /// Bitcoin Transaction) for a single key, witness public key hash (WPKH) based descriptor wallet.
@@ -29,22 +30,22 @@ use std::str::FromStr;
 /// 5. Broadcast the transactions from the finalized PSBT.
 fn main() -> Result<(), Box<dyn Error>> {
     // test key created with `bdk-cli key generate` and `bdk-cli key derive` commands
-    let external_secret_xkey = DescriptorSecretKey::from_str("[e9824965/84'/1'/0']tprv8fvem7qWxY3SGCQczQpRpqTKg455wf1zgixn6MZ4ze8gRfHjov5gXBQTadNfDgqs9ERbZZ3Bi1PNYrCCusFLucT39K525MWLpeURjHwUsfX/0/*").unwrap();
-    let internal_secret_xkey = DescriptorSecretKey::from_str("[e9824965/84'/1'/0']tprv8fvem7qWxY3SGCQczQpRpqTKg455wf1zgixn6MZ4ze8gRfHjov5gXBQTadNfDgqs9ERbZZ3Bi1PNYrCCusFLucT39K525MWLpeURjHwUsfX/1/*").unwrap();
+    let external_secret_xkey = DescriptorSecretKey::from_str("[9b5d4149/86'/0'/0']tprv8ZgxMBicQKsPeFd9cajKjGekZW5wDXq2e1vpKToJvZMqjyNkMqmr7exPFUbJ92YxSkqL4w19HpuzYkVYvc4n4pvySBmJfsawS7Seb8FzuNJ/0/*").unwrap();
+    let internal_secret_xkey = DescriptorSecretKey::from_str("[9b5d4149/86'/0'/0']tprv8ZgxMBicQKsPeFd9cajKjGekZW5wDXq2e1vpKToJvZMqjyNkMqmr7exPFUbJ92YxSkqL4w19HpuzYkVYvc4n4pvySBmJfsawS7Seb8FzuNJ/1/*").unwrap();
 
     let secp = Secp256k1::new();
     let external_public_xkey = external_secret_xkey.to_public(&secp).unwrap();
     let internal_public_xkey = internal_secret_xkey.to_public(&secp).unwrap();
 
-    let signing_external_descriptor = descriptor!(wpkh(external_secret_xkey)).unwrap();
-    let signing_internal_descriptor = descriptor!(wpkh(internal_secret_xkey)).unwrap();
+    let signing_external_descriptor = descriptor!(tr(external_secret_xkey)).unwrap();
+    let signing_internal_descriptor = descriptor!(tr(internal_secret_xkey)).unwrap();
 
     println!("Signing external descriptor   : {}", signing_external_descriptor.0);
-    
-    let watch_only_external_descriptor = descriptor!(wpkh(external_public_xkey)).unwrap();
-    let watch_only_internal_descriptor = descriptor!(wpkh(internal_public_xkey)).unwrap();
 
-    // create client for Blockstream's testnet electrum server
+    let watch_only_external_descriptor = descriptor!(tr(external_public_xkey)).unwrap();
+    let watch_only_internal_descriptor = descriptor!(tr(internal_public_xkey)).unwrap();
+
+        // create client for Blockstream's testnet electrum server
     let blockchain =
         ElectrumBlockchain::from(Client::new("ssl://electrum.blockstream.info:60002")?);
 
@@ -55,6 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Network::Testnet,
         MemoryDatabase::default(),
     )?;
+
 
     // create signing wallet
     let signing_wallet: Wallet<MemoryDatabase> = Wallet::new(

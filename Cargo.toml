@@ -137,6 +137,11 @@ path = "examples/psbt_signer.rs"
 required-features = ["electrum"]
 
 [[example]]
+name = "psbt_signer_alice"
+path = "examples/psbt_signer_alice.rs"
+required-features = ["electrum"]
+
+[[example]]
 name = "hardware_signer"
 path = "examples/hardware_signer.rs"
 required-features = ["electrum", "hardware-signer"]
@@ -159,6 +164,11 @@ required-features = ["use-esplora-reqwest", "reqwest-default-tls", "async-interf
 [[example]]
 name = "mnemonic_to_descriptors"
 path = "examples/mnemonic_to_descriptors.rs"
+required-features = ["all-keys"]
+
+[[example]]
+name = "known_mnemonic_to_descriptors"
+path = "examples/known_mnemonic_to_descriptors.rs"
 required-features = ["all-keys"]
 
 [[example]]

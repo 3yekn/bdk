@@ -14,6 +14,7 @@ use bdk::FeeRate;
 use bdk::SignOptions;
 use bdk::bitcoin::secp256k1::Secp256k1;
 use bdk::bitcoin::util::bip32::DerivationPath;
+use miniscript::descriptor::DescriptorSecretKey;
 use bdk::bitcoin::Network;
 use bdk::descriptor;
 use bdk::descriptor::IntoWalletDescriptor;
@@ -68,10 +69,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         internal_descriptor.to_string_with_secret(&int_keymap)
     );
 
+    let external_secret_xkey = DescriptorSecretKey::from_str(external_descriptor.to_string_with_secret(&ext_keymap).as_str()).unwrap();
+    let internal_secret_xkey = DescriptorSecretKey::from_str(internal_descriptor.to_string_with_secret(&int_keymap).as_str()).unwrap();
+
+    let signing_external_descriptor = descriptor!(tr(external_secret_xkey)).unwrap();
+    let signing_internal_descriptor = descriptor!(tr(internal_secret_xkey)).unwrap();
+
+    println!("Signing external descriptor   : \n{:#?}\n", signing_external_descriptor);
+
     // create signing wallet
     let signing_wallet: Wallet<MemoryDatabase> = Wallet::new(
-        external_descriptor,
-        Some(internal_descriptor),
+        signing_external_descriptor,
+        Some(signing_internal_descriptor),
         Network::Testnet,
         MemoryDatabase::default(),
     )?;

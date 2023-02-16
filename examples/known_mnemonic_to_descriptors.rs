@@ -6,32 +6,33 @@
 // You may not use this file except in accordance with one or both of these
 // licenses.
 
+use bdk::blockchain::{ElectrumBlockchain};
+use bdk::{descriptor, SyncOptions};
+use bdk::database::MemoryDatabase;
 use bdk::bitcoin::secp256k1::Secp256k1;
 use bdk::bitcoin::util::bip32::DerivationPath;
 use bdk::bitcoin::Network;
-use bdk::descriptor;
 use bdk::descriptor::IntoWalletDescriptor;
-use bdk::keys::bip39::{Language, Mnemonic, WordCount};
-use bdk::keys::{GeneratableKey, GeneratedKey};
-use bdk::miniscript::Tap;
-use bdk::Error as BDK_Error;
+use bdk::keys::bip39::{Language, Mnemonic};
 use std::error::Error;
 use std::str::FromStr;
+use bdk::Wallet;
+use electrum_client::Client;
 
 /// This example demonstrates how to generate a mnemonic phrase
 /// using BDK and use that to generate a descriptor string.
 fn main() -> Result<(), Box<dyn Error>> {
     let secp = Secp256k1::new();
 
-    // In this example we are generating a 12 words mnemonic phrase
-    // but it is also possible generate 15, 18, 21 and 24 words
-    // using their respective `WordCount` variant.
-    let mnemonic: GeneratedKey<_, Tap> =
-        Mnemonic::generate((WordCount::Words12, Language::English))
-            .map_err(|_| BDK_Error::Generic("Mnemonic generation error".to_string()))?;
+    // Coinstr Alice
+    const MNEMONIC: &str = "carry surface crater rude auction ritual banana elder shuffle much wonder decrease";
+    const PASSPHRASE: &str = "oy+hB/qeJ1AasCCR";
+    
+    let mnemonic = Mnemonic::parse_in_normalized(Language::English, &MNEMONIC).unwrap();
 
-    println!("Mnemonic phrase: {}", *mnemonic);
-    let mnemonic_with_passphrase = (mnemonic, Some("a passphrase".to_string()));
+    println!("Mnemonic phrase   : {}", &mnemonic);
+    println!("Passphrase        : {}", &PASSPHRASE);
+    let mnemonic_with_passphrase = (mnemonic, Some(PASSPHRASE.to_string()));
 
     // define external and internal derivation key path
     let external_path = DerivationPath::from_str("m/86h/0h/0h/0").unwrap();
@@ -55,6 +56,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         "tprv internal descriptor: {}",
         internal_descriptor.to_string_with_secret(&int_keymap)
     );
+
+    // create client for Blockstream's testnet electrum server
+    let blockchain =
+        ElectrumBlockchain::from(Client::new("ssl://electrum.blockstream.info:60002")?);
+
+    // create signing wallet
+    let signing_wallet: Wallet<MemoryDatabase> = Wallet::new(
+        external_descriptor,
+        Some(internal_descriptor),
+        Network::Testnet,
+        MemoryDatabase::default(),
+    )?;
+
+    println!("Syncing wallet.");
+    signing_wallet.sync(&blockchain, SyncOptions::default())?;
+
+    let balance = signing_wallet.get_balance()?;
+    println!("wallet balances in SATs: {}", balance);
 
     Ok(())
 }
