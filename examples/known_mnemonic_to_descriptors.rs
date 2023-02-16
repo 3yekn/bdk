@@ -42,8 +42,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (external_descriptor, ext_keymap) =
         descriptor!(tr((mnemonic_with_passphrase.clone(), external_path)))?
             .into_wallet_descriptor(&secp, Network::Testnet)?;
+
     let (internal_descriptor, int_keymap) =
-        descriptor!(tr((mnemonic_with_passphrase, internal_path)))?
+        descriptor!(tr((mnemonic_with_passphrase.clone(), internal_path)))?
             .into_wallet_descriptor(&secp, Network::Testnet)?;
 
     println!("tpub external descriptor: {}", external_descriptor);
@@ -63,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // create signing wallet
     let signing_wallet: Wallet<MemoryDatabase> = Wallet::new(
-        external_descriptor,
+        external_descriptor.clone(),
         Some(internal_descriptor),
         Network::Testnet,
         MemoryDatabase::default(),
@@ -74,6 +75,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let balance = signing_wallet.get_balance()?;
     println!("wallet balances in SATs: {}", balance);
+
+    // why no signers? 
+    println!("\nNumber of signers in signing wallet   {}", signing_wallet.get_signers(bdk::KeychainKind::External).signers().len());
+
+    println!("{:#?}", external_descriptor);
 
     Ok(())
 }

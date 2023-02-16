@@ -57,7 +57,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         MemoryDatabase::default(),
     )?;
 
-
     // create signing wallet
     let signing_wallet: Wallet<MemoryDatabase> = Wallet::new(
         signing_external_descriptor,
@@ -67,6 +66,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     )?;
 
     println!("\nNumber of signers in signing wallet   {}", signing_wallet.get_signers(bdk::KeychainKind::External).signers().len());
+
+    for signer in signing_wallet.get_signers(bdk::KeychainKind::External).signers() {
+        println!("{:#?}", signer);
+    }
 
     println!("Syncing watch only wallet.");
     watch_only_wallet.sync(&blockchain, SyncOptions::default())?;
@@ -97,11 +100,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             );
         }
     } else {
-        println!("Creating a PSBT sending 9800 SATs plus fee to the u01.net testnet faucet return address 'tb1ql7w62elx9ucw4pj5lgw4l028hmuw80sndtntxt'.");
+        println!("Creating a PSBT sending 300 SATs plus fee to the u01.net testnet faucet return address 'tb1ql7w62elx9ucw4pj5lgw4l028hmuw80sndtntxt'.");
         let return_address = Address::from_str("tb1ql7w62elx9ucw4pj5lgw4l028hmuw80sndtntxt")?;
         let mut builder = watch_only_wallet.build_tx();
         builder
-            .add_recipient(return_address.script_pubkey(), 9_800)
+            .add_recipient(return_address.script_pubkey(), 300)
             .enable_rbf()
             .fee_rate(FeeRate::from_sat_per_vb(1.0));
 
